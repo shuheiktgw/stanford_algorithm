@@ -15,6 +15,20 @@ def prepare_test10():
     return input_list_int
 
 
+def prepare_test100():
+    file = open('test100.txt')
+    text = file.read()
+    file.close()
+    input_list_int = map(int, text.splitlines())
+
+    assert (input_list_int[0] == 57)
+    assert (input_list_int[-1] == 29)
+    assert (len(input_list_int) == 100)
+
+    return input_list_int
+
+
+
 def prepare_data():
     file = open('quicksort.txt')
     text = file.read()
@@ -46,14 +60,15 @@ def quick_sort(original_input, pivot_algorithm):
             right_list.append(elm)
 
     left_sorted_list, left_comparison = quick_sort(left_list, pivot_algorithm)
-    left_sorted_list.append(pivot)
     right_sorted_list, right_comparison = quick_sort(right_list, pivot_algorithm)
+
+    left_sorted_list.append(pivot)
     left_sorted_list.extend(right_sorted_list)
     return left_sorted_list, left_comparison + right_comparison + len(original_input) - 1
 
 
 # Shitty implementation just for the shitty quiz
-def shitty_quick_sort(original_input, pivot_algorithm, merge_pivot):
+def shitty_quick_sort(original_input, pivot_algorithm):
     input = original_input[:]
 
     if len(original_input) < 2:
@@ -67,14 +82,18 @@ def shitty_quick_sort(original_input, pivot_algorithm, merge_pivot):
         if elm < pivot:
             left_list.append(elm)
             if len(right_list) > 1:
-                tmp = right_list.pop(0)
-                right_list.append(tmp)
+                f = right_list.pop(0)
+                right_list.append(f)
         else:
             right_list.append(elm)
 
-    left_sorted_list, left_comparison = quick_sort(left_list, pivot_algorithm)
-    right_sorted_list, right_comparison = quick_sort(right_list, pivot_algorithm)
-    merge_pivot(left_list, right_list, pivot)
+    if len(left_list) > 1:
+        tmp = left_list.pop(-1)
+        left_list.insert(0, tmp)
+
+    left_sorted_list, left_comparison = shitty_quick_sort(left_list, pivot_algorithm)
+    right_sorted_list, right_comparison = shitty_quick_sort(right_list, pivot_algorithm)
+    left_sorted_list.append(pivot)
     left_sorted_list.extend(right_sorted_list)
     return left_sorted_list, left_comparison + right_comparison + len(original_input) - 1
 
@@ -98,24 +117,21 @@ def random_test(pivot_algorithm):
 first_pivot = lambda l: (l.pop(0), l)
 
 
-def first_merge_pivot(left_list, right_list, pivot):
-    tmp = left_list[-1]
-    left_list[-1] = pivot
-    left_list.insert(0, tmp)
+def last_pivot(l):
+    p = l.pop(-1)
+    tmp = l.pop(0)
+    l.append(tmp)
 
-# Pivot Last
-last_pivot = lambda l: (l.pop(-1), l)
-
-
-def last_merge_pivot(left_list, right_list, pivot):
-    tmp = right_list[0]
-    right_list[0] = pivot
-    right_list.append(tmp)
+    return p, l
 
 
 # Pivot median
 def median_of_three_pivot(l):
-    middle_idx = int(math.ceil(len(l)/2.0))
+    middle_idx = 0
+    if len(l) % 2 == 0:
+        middle_idx = int(math.floor(len(l) / 2.0)) - 1
+    else:
+        middle_idx = int(math.floor(len(l) / 2.0))
     vals = [l[0], l[middle_idx], l[-1]]
     sorted_vals = sorted(vals)
     median = sorted_vals[1]
@@ -123,54 +139,62 @@ def median_of_three_pivot(l):
     if median_position == 0:
         return l.pop(0), l
     elif median_position == 1:
-        return l.pop(middle_idx), l
+        p = l.pop(middle_idx)
+        tmp = l.pop(0)
+        l.insert(middle_idx - 1, tmp)
+        return p, l
     else:
-        return l.pop(-1), l
-
-
-# test10
-test10 = prepare_test10()
+        p = l.pop(-1)
+        tmp = l.pop(0)
+        l.append(tmp)
+        return p, l
 
 # first
-f_test10_list, f_test10_count = shitty_quick_sort(test10, first_pivot, first_merge_pivot)
+test10_f = prepare_test10()
+f_test10_list, f_test10_count = shitty_quick_sort(test10_f, first_pivot)
 print(f_test10_count)
 print(f_test10_list)
 
+test100_f = prepare_test100()
+f_test100_list, f_test100_count = shitty_quick_sort(test100_f, first_pivot)
+print(f_test100_count)
+print(f_test100_list)
+
+data_f = prepare_data()
+f_list, f_count = shitty_quick_sort(data_f, first_pivot)
+print(f_count)
+
+
 # last
-l_test10_list, l_test10_count = shitty_quick_sort(test10, last_pivot, last_merge_pivot)
+test10_l = prepare_test10()
+l_test10_list, l_test10_count = shitty_quick_sort(test10_l, last_pivot)
 print(l_test10_count)
 print(l_test10_list)
 
-# median
-# m_test10_list, m_test10_count = quick_sort(test10, median_of_three_pivot)
-# print(m_test10_count)
+test100_l = prepare_test100()
+l_test100_list, l_test100_count = shitty_quick_sort(test100_l, last_pivot)
+print(l_test100_count)
+print(l_test100_list)
 
-# # Prepare Data
-# input = prepare_data()
-#
-#
-#
-#
-# f_list, count = quick_sort(input, first_pivot)
-# print(count)
-#
-#
-# # Pivot Last
-#
-#
-# # random_test(last_pivot)
-#
-# l_list, count = quick_sort(input, last_pivot)
-# print(count)
-#
-# # Pivot Median
-#
-#
-#
-#
-# # random_test(median_of_three_pivot)
-# m_list, count = quick_sort(input, median_of_three_pivot)
-# print(count)
+data_l = prepare_data()
+l_list, l_count = shitty_quick_sort(data_l, last_pivot)
+print(l_count)
+
+
+# median
+test10_m = prepare_test10()
+m_test10_list, m_test10_count = shitty_quick_sort(test10_m, median_of_three_pivot)
+print(m_test10_count)
+print(m_test10_list)
+
+test100_m = prepare_test100()
+m_test100_list, m_test100_count = shitty_quick_sort(test100_m, median_of_three_pivot)
+print(m_test100_count)
+print(m_test100_list)
+
+data_m = prepare_data()
+m_list, m_count = shitty_quick_sort(data_m, median_of_three_pivot)
+print(m_count)
 
 
 
